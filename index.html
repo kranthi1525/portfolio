@@ -1,0 +1,1834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kranthi — Full Stack Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Lucide icons via CDN -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+/* ============================================================
+   RESET & BASE
+============================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #050505;
+  --bg2: #111111;
+  --bg3: #1a1a1a;
+  --accent: #00ff88;
+  --accent2: #00cc6a;
+  --text: #ffffff;
+  --muted: #bdbdbd;
+  --dim: #555555;
+  --card: #0d0d0d;
+  --border: rgba(255,255,255,0.07);
+  --glow: rgba(0,255,136,0.15);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  cursor: none;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+::selection { background: var(--accent); color: #000; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { cursor: none; border: none; background: none; font-family: inherit; }
+
+/* ============================================================
+   CURSOR
+============================================================ */
+.kranthi-cursor {
+  width: 10px; height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, background 0.2s;
+  mix-blend-mode: difference;
+}
+.kranthi-cursor-follower {
+  width: 36px; height: 36px;
+  border: 1.5px solid rgba(0,255,136,0.5);
+  border-radius: 50%;
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s ease, width 0.25s, height 0.25s, opacity 0.25s;
+}
+body.cursor-hover .kranthi-cursor { width: 16px; height: 16px; }
+body.cursor-hover .kranthi-cursor-follower { width: 56px; height: 56px; opacity: 0.4; }
+
+/* ============================================================
+   PRELOADER
+============================================================ */
+.kranthi-preloader {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 99997;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2rem;
+  transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+.kranthi-preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.kranthi-preloader-logo {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.kranthi-preloader-logo span { color: var(--accent); }
+.kranthi-preloader-bar-wrap {
+  width: 240px; height: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px; overflow: hidden;
+}
+.kranthi-preloader-bar {
+  height: 100%;
+  background: var(--accent);
+  width: 0%;
+  transition: width 0.05s linear;
+  box-shadow: 0 0 12px var(--accent);
+}
+.kranthi-preloader-pct {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+/* ============================================================
+   NOISE OVERLAY
+============================================================ */
+.kranthi-noise {
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 1; opacity: 0.35;
+}
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+.kranthi-navbar {
+  position: fixed; top: 1.25rem; left: 50%;
+  transform: translateX(-50%);
+  z-index: 9000;
+  background: rgba(5,5,5,0.6);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border: 1px solid var(--border);
+  border-radius: 60px;
+  padding: 0.6rem 1.5rem;
+  display: flex; align-items: center; gap: 0.25rem;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.kranthi-navbar.scrolled {
+  background: rgba(5,5,5,0.88);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,255,136,0.06);
+}
+.kranthi-nav-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-right: 1rem;
+  letter-spacing: -0.02em;
+}
+.kranthi-nav-logo span { color: var(--accent); }
+.kranthi-nav-links { display: flex; align-items: center; gap: 0.1rem; }
+.kranthi-nav-link {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 0.4rem 0.85rem;
+  border-radius: 40px;
+  transition: color 0.25s, background 0.25s;
+  letter-spacing: 0.01em;
+}
+.kranthi-nav-link:hover, .kranthi-nav-link.active {
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+}
+.kranthi-nav-link.active { color: var(--accent); }
+.kranthi-nav-cta {
+  margin-left: 0.75rem;
+  font-size: 0.8rem; font-weight: 600;
+  color: #000;
+  background: var(--accent);
+  padding: 0.45rem 1.1rem;
+  border-radius: 40px;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.kranthi-nav-cta:hover { opacity: 0.88; transform: scale(0.97); }
+.kranthi-hamburger {
+  display: none; flex-direction: column; gap: 5px;
+  padding: 0.3rem; cursor: none;
+}
+.kranthi-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--text);
+  transition: transform 0.3s, opacity 0.3s;
+}
+.kranthi-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.kranthi-hamburger.open span:nth-child(2) { opacity: 0; }
+.kranthi-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+.kranthi-mobile-menu {
+  display: none; position: fixed; inset: 0;
+  background: rgba(5,5,5,0.97);
+  z-index: 8999;
+  flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+  opacity: 0; transition: opacity 0.3s;
+}
+.kranthi-mobile-menu.open { opacity: 1; }
+.kranthi-mobile-link {
+  font-family: var(--font-display);
+  font-size: 2rem; font-weight: 700;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+.kranthi-mobile-link:hover { color: var(--accent); }
+
+/* ============================================================
+   HERO
+============================================================ */
+.kranthi-hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  justify-content: center;
+  position: relative;
+  padding: 8rem 6vw 4rem;
+  overflow: hidden;
+}
+.kranthi-hero-grid-bg {
+  position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+}
+.kranthi-hero-glow {
+  position: absolute; top: -20%; left: -10%;
+  width: 60vw; height: 60vw;
+  background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.kranthi-hero-tag {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  font-family: var(--font-mono); font-size: 0.72rem;
+  color: var(--accent); letter-spacing: 0.12em;
+  margin-bottom: 1.75rem; text-transform: uppercase;
+}
+.kranthi-hero-tag::before {
+  content: ''; width: 24px; height: 1px; background: var(--accent);
+}
+.kranthi-hero-headline {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 7.5vw, 7.5rem);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -0.03em;
+  max-width: 14ch;
+  margin-bottom: 0.25rem;
+}
+.kranthi-hero-headline .kranthi-word-rotate {
+  color: var(--accent);
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.kranthi-rotate-words {
+  display: flex; flex-direction: column;
+  height: 1em;
+  overflow: hidden;
+}
+.kranthi-rotate-word {
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.77,0,0.175,1), opacity 0.4s;
+  transform: translateY(100%);
+  opacity: 0;
+  white-space: nowrap;
+}
+.kranthi-rotate-word.active { transform: translateY(0); opacity: 1; }
+.kranthi-rotate-word.leaving { transform: translateY(-100%); opacity: 0; }
+.kranthi-hero-sub {
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  color: var(--muted);
+  max-width: 46ch;
+  margin: 2rem 0 3rem;
+  line-height: 1.7;
+  font-weight: 400;
+}
+.kranthi-hero-actions { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.kranthi-btn-primary {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  font-size: 0.9rem; font-weight: 600;
+  color: #000; background: var(--accent);
+  padding: 0.9rem 2rem; border-radius: 60px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 0 0 0 rgba(0,255,136,0.4);
+}
+.kranthi-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,255,136,0.35);
+}
+.kranthi-btn-secondary {
+  display: inline-flex; align-items: center; gap: 0.6rem;
+  font-size: 0.9rem; font-weight: 500;
+  color: var(--text);
+  padding: 0.9rem 2rem; border-radius: 60px;
+  border: 1px solid var(--border);
+  transition: border-color 0.2s, background 0.2s;
+}
+.kranthi-btn-secondary:hover { border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.04); }
+.kranthi-hero-scroll {
+  position: absolute; bottom: 2.5rem; left: 6vw;
+  display: flex; align-items: center; gap: 0.75rem;
+  font-family: var(--font-mono); font-size: 0.65rem;
+  color: var(--dim); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.kranthi-scroll-line {
+  width: 32px; height: 1px; background: var(--dim);
+  position: relative; overflow: hidden;
+}
+.kranthi-scroll-line::after {
+  content: ''; position: absolute;
+  left: -100%; top: 0; width: 100%; height: 100%;
+  background: var(--accent);
+  animation: scrollSlide 1.8s infinite;
+}
+@keyframes scrollSlide { to { left: 200%; } }
+.kranthi-hero-avatar {
+  position: absolute; right: 6vw; top: 50%; transform: translateY(-50%);
+  width: clamp(220px, 22vw, 320px);
+  aspect-ratio: 1;
+}
+.kranthi-avatar-ring {
+  position: absolute; inset: -12px;
+  border-radius: 50%;
+  border: 1px dashed rgba(0,255,136,0.2);
+  animation: spinRing 20s linear infinite;
+}
+@keyframes spinRing { to { transform: rotate(360deg); } }
+.kranthi-avatar-img {
+  width: 100%; height: 100%; border-radius: 50%;
+  background: var(--bg3);
+  border: 2px solid rgba(0,255,136,0.12);
+  overflow: hidden; display: flex; align-items: center; justify-content: center;
+  font-size: 5rem;
+  box-shadow: 0 0 60px rgba(0,255,136,0.08), inset 0 0 40px rgba(0,0,0,0.4);
+}
+.kranthi-availability-badge {
+  position: absolute; bottom: -1rem; left: 50%; transform: translateX(-50%);
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.25);
+  border-radius: 40px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.72rem; font-weight: 500;
+  color: var(--accent);
+  white-space: nowrap;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.kranthi-availability-badge::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--accent); border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+/* ============================================================
+   SECTIONS COMMON
+============================================================ */
+section { position: relative; z-index: 2; }
+.kranthi-section-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem; font-weight: 500;
+  color: var(--accent); letter-spacing: 0.15em;
+  text-transform: uppercase; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.kranthi-section-label::before { content:''; width:20px; height:1px; background:var(--accent); }
+.kranthi-section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.kranthi-section-title em { font-style: normal; color: var(--accent); }
+.kranthi-divider { width: 1px; height: 80px; background: var(--border); margin: 0 auto; }
+.kranthi-container { max-width: 1200px; margin: 0 auto; padding: 0 6vw; }
+
+/* Reveal animations */
+.kranthi-reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.kranthi-reveal.visible { opacity: 1; transform: translateY(0); }
+.kranthi-reveal-delay-1 { transition-delay: 0.1s; }
+.kranthi-reveal-delay-2 { transition-delay: 0.2s; }
+.kranthi-reveal-delay-3 { transition-delay: 0.3s; }
+.kranthi-reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ============================================================
+   ABOUT
+============================================================ */
+.kranthi-about { padding: 8rem 6vw; }
+.kranthi-about-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5rem; align-items: start;
+}
+.kranthi-about-text { max-width: 520px; }
+.kranthi-about-desc {
+  color: var(--muted); line-height: 1.8;
+  margin-top: 1.5rem; font-size: 1.05rem;
+}
+.kranthi-about-desc strong { color: var(--text); font-weight: 600; }
+.kranthi-timeline { margin-top: 3rem; }
+.kranthi-timeline-item {
+  display: grid; grid-template-columns: 80px 1fr;
+  gap: 1.5rem; padding-bottom: 2rem;
+  position: relative;
+}
+.kranthi-timeline-item::before {
+  content: ''; position: absolute;
+  left: 39px; top: 28px; bottom: 0;
+  width: 1px; background: var(--border);
+}
+.kranthi-timeline-item:last-child::before { display: none; }
+.kranthi-timeline-year {
+  font-family: var(--font-mono); font-size: 0.75rem;
+  color: var(--accent); font-weight: 500;
+  padding-top: 2px; text-align: center;
+}
+.kranthi-timeline-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--accent); margin: 4px auto 0;
+  box-shadow: 0 0 12px var(--accent);
+}
+.kranthi-timeline-body { padding-top: 0; }
+.kranthi-timeline-role {
+  font-weight: 600; font-size: 0.95rem;
+  color: var(--text);
+}
+.kranthi-timeline-place {
+  font-size: 0.82rem; color: var(--muted); margin-top: 0.25rem;
+}
+.kranthi-stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1.5rem; margin-top: 1rem;
+}
+.kranthi-stat-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 1.75rem;
+  text-align: left;
+  transition: border-color 0.3s;
+}
+.kranthi-stat-card:hover { border-color: rgba(0,255,136,0.2); }
+.kranthi-stat-num {
+  font-family: var(--font-display);
+  font-size: 2.8rem; font-weight: 800;
+  color: var(--accent); line-height: 1;
+  letter-spacing: -0.03em;
+}
+.kranthi-stat-label {
+  font-size: 0.82rem; color: var(--muted);
+  margin-top: 0.4rem;
+}
+
+/* ============================================================
+   SKILLS
+============================================================ */
+.kranthi-skills { padding: 6rem 6vw; }
+.kranthi-skills-header { text-align: center; margin-bottom: 4rem; }
+.kranthi-skills-canvas-wrap {
+  position: relative;
+  max-width: 800px; margin: 0 auto;
+  height: 480px;
+}
+#kranthi-skills-canvas { width: 100%; height: 100%; }
+.kranthi-skill-tooltip {
+  position: absolute; pointer-events: none;
+  background: var(--bg2); border: 1px solid rgba(0,255,136,0.25);
+  border-radius: 12px; padding: 1rem 1.25rem;
+  min-width: 180px; z-index: 100;
+  opacity: 0; transition: opacity 0.2s;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+.kranthi-skill-tooltip.show { opacity: 1; }
+.kranthi-skill-tooltip-name {
+  font-weight: 700; font-size: 0.95rem; color: var(--accent);
+}
+.kranthi-skill-tooltip-cat {
+  font-size: 0.72rem; color: var(--muted);
+  font-family: var(--font-mono); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-top: 0.2rem;
+}
+.kranthi-skill-tooltip-info {
+  font-size: 0.82rem; color: var(--muted);
+  margin-top: 0.5rem; line-height: 1.5;
+}
+
+/* ============================================================
+   SERVICES
+============================================================ */
+.kranthi-services { padding: 6rem 6vw; }
+.kranthi-services-header { margin-bottom: 3.5rem; }
+.kranthi-services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.kranthi-service-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 2.25rem;
+  position: relative; overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.165,0.84,0.44,1), box-shadow 0.4s, border-color 0.4s;
+  transform-style: preserve-3d;
+}
+.kranthi-service-card::before {
+  content: ''; position: absolute;
+  inset: 0; border-radius: 20px;
+  background: radial-gradient(circle at var(--mx,50%) var(--my,50%), rgba(0,255,136,0.07) 0%, transparent 65%);
+  opacity: 0; transition: opacity 0.4s;
+}
+.kranthi-service-card:hover::before { opacity: 1; }
+.kranthi-service-card:hover {
+  transform: translateY(-6px) rotateX(1.5deg) rotateY(1.5deg);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,255,136,0.15);
+  border-color: rgba(0,255,136,0.15);
+}
+.kranthi-service-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: rgba(0,255,136,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; margin-bottom: 1.5rem;
+}
+.kranthi-service-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem; font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+.kranthi-service-desc {
+  font-size: 0.88rem; color: var(--muted);
+  line-height: 1.65;
+}
+.kranthi-service-arrow {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.8rem; color: var(--accent);
+  margin-top: 1.5rem; font-weight: 500;
+  transition: gap 0.2s;
+}
+.kranthi-service-card:hover .kranthi-service-arrow { gap: 0.7rem; }
+
+/* ============================================================
+   PORTFOLIO
+============================================================ */
+.kranthi-portfolio { padding: 6rem 6vw; }
+.kranthi-portfolio-header { margin-bottom: 2.5rem; }
+.kranthi-filter-bar {
+  display: flex; align-items: center; gap: 0.5rem;
+  flex-wrap: wrap; margin-bottom: 3rem;
+}
+.kranthi-filter-btn {
+  font-size: 0.8rem; font-weight: 500;
+  padding: 0.45rem 1.1rem; border-radius: 40px;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.kranthi-filter-btn:hover { border-color: rgba(0,255,136,0.3); color: var(--text); }
+.kranthi-filter-btn.active {
+  background: var(--accent); border-color: var(--accent);
+  color: #000;
+}
+.kranthi-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.75rem;
+}
+.kranthi-project-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+  transition: transform 0.4s, box-shadow 0.4s, border-color 0.4s, opacity 0.4s;
+  cursor: none;
+}
+.kranthi-project-card.filtered-out { opacity: 0; pointer-events: none; transform: scale(0.95); }
+.kranthi-project-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  border-color: rgba(0,255,136,0.12);
+}
+.kranthi-project-thumb {
+  position: relative; overflow: hidden;
+  height: 220px;
+  background: var(--bg3);
+}
+.kranthi-project-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top;
+  transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.kranthi-project-card:hover .kranthi-project-thumb img { transform: scale(1.08); }
+.kranthi-project-overlay {
+  position: absolute; inset: 0;
+  background: rgba(5,5,5,0.75);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.35s;
+}
+.kranthi-project-card:hover .kranthi-project-overlay { opacity: 1; }
+.kranthi-project-view-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent); color: #000;
+  font-size: 0.85rem; font-weight: 700;
+  padding: 0.75rem 1.5rem; border-radius: 40px;
+  transform: translateY(10px);
+  transition: transform 0.3s;
+}
+.kranthi-project-card:hover .kranthi-project-view-btn { transform: translateY(0); }
+.kranthi-project-body { padding: 1.5rem; }
+.kranthi-project-cat {
+  display: inline-block;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  color: var(--accent); letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 0.6rem;
+  border: 1px solid rgba(0,255,136,0.2);
+  padding: 0.25rem 0.65rem; border-radius: 20px;
+}
+.kranthi-project-name {
+  font-family: var(--font-display);
+  font-size: 1.2rem; font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.kranthi-project-desc {
+  font-size: 0.85rem; color: var(--muted);
+  line-height: 1.6; margin-bottom: 1rem;
+}
+.kranthi-project-tech {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+}
+.kranthi-tech-tag {
+  font-size: 0.72rem; font-family: var(--font-mono);
+  color: var(--dim); border: 1px solid rgba(255,255,255,0.06);
+  padding: 0.2rem 0.6rem; border-radius: 20px;
+}
+
+/* ============================================================
+   PROCESS
+============================================================ */
+.kranthi-process { padding: 6rem 6vw; }
+.kranthi-process-header { text-align: center; margin-bottom: 4rem; }
+.kranthi-process-steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem; position: relative;
+}
+.kranthi-process-steps::before {
+  content: ''; position: absolute;
+  top: 36px; left: 10%; right: 10%;
+  height: 1px; background: var(--border); z-index: 0;
+}
+.kranthi-process-step {
+  text-align: center; position: relative; z-index: 1;
+}
+.kranthi-process-icon {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; margin: 0 auto 1.25rem;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.kranthi-process-step:hover .kranthi-process-icon {
+  border-color: rgba(0,255,136,0.4);
+  box-shadow: 0 0 24px rgba(0,255,136,0.12);
+}
+.kranthi-process-name {
+  font-family: var(--font-display);
+  font-size: 0.95rem; font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+.kranthi-process-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+
+/* ============================================================
+   TESTIMONIALS
+============================================================ */
+.kranthi-testimonials { padding: 6rem 6vw; overflow: hidden; }
+.kranthi-testimonials-header { text-align: center; margin-bottom: 3.5rem; }
+.kranthi-testimonials-track-wrap { overflow: hidden; }
+.kranthi-testimonials-track {
+  display: flex; gap: 1.5rem;
+  transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.kranthi-testimonial-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px; padding: 2.25rem;
+  min-width: calc(33.333% - 1rem);
+  flex-shrink: 0;
+  transition: border-color 0.3s;
+}
+.kranthi-testimonial-card:hover { border-color: rgba(0,255,136,0.15); }
+.kranthi-testimonial-quote {
+  font-size: 1.4rem; color: var(--accent); margin-bottom: 1rem; opacity: 0.5;
+}
+.kranthi-testimonial-text {
+  font-size: 0.92rem; color: var(--muted);
+  line-height: 1.8; margin-bottom: 1.5rem;
+}
+.kranthi-testimonial-author { display: flex; align-items: center; gap: 1rem; }
+.kranthi-testimonial-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; flex-shrink: 0;
+  overflow: hidden;
+}
+.kranthi-testimonial-name { font-weight: 600; font-size: 0.88rem; }
+.kranthi-testimonial-role { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+.kranthi-testimonial-stars {
+  font-size: 0.75rem; color: #f5c518; margin-bottom: 0.1rem;
+}
+.kranthi-testimonials-nav {
+  display: flex; align-items: center; justify-content: center;
+  gap: 0.75rem; margin-top: 2.5rem;
+}
+.kranthi-testimonials-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); transition: background 0.2s, transform 0.2s;
+}
+.kranthi-testimonials-dot.active { background: var(--accent); transform: scale(1.25); }
+.kranthi-testimonials-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--border);
+  color: var(--muted); font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+.kranthi-testimonials-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   STATS
+============================================================ */
+.kranthi-stats { padding: 5rem 6vw; }
+.kranthi-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 20px; overflow: hidden;
+}
+.kranthi-stats-item {
+  background: var(--bg);
+  padding: 3rem 2rem; text-align: center;
+}
+.kranthi-stats-num {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-weight: 800; color: var(--accent);
+  letter-spacing: -0.04em; line-height: 1;
+}
+.kranthi-stats-label {
+  font-size: 0.85rem; color: var(--muted);
+  margin-top: 0.6rem;
+}
+
+/* ============================================================
+   CONTACT
+============================================================ */
+.kranthi-contact { padding: 6rem 6vw 5rem; }
+.kranthi-contact-inner {
+  display: grid; grid-template-columns: 1fr 1.2fr;
+  gap: 5rem; align-items: start;
+}
+.kranthi-contact-info-label { color: var(--muted); font-size: 1.05rem; margin-top: 1.25rem; line-height: 1.7; }
+.kranthi-contact-channels { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; }
+.kranthi-contact-channel {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 0.85rem 1.25rem; border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: border-color 0.25s, background 0.25s;
+  font-size: 0.88rem; color: var(--muted);
+}
+.kranthi-contact-channel:hover { border-color: rgba(0,255,136,0.2); background: rgba(0,255,136,0.03); color: var(--text); }
+.kranthi-contact-channel-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+.kranthi-contact-form-wrap {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2.5rem;
+}
+.kranthi-form-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem; font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.kranthi-form-sub { font-size: 0.85rem; color: var(--muted); margin-bottom: 2rem; }
+.kranthi-form-group { margin-bottom: 1.25rem; }
+.kranthi-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.kranthi-form-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.5rem; display: block; }
+.kranthi-form-input,
+.kranthi-form-textarea,
+.kranthi-form-select {
+  width: 100%; background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.85rem 1rem;
+  color: var(--text); font-family: var(--font-body);
+  font-size: 0.88rem; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  resize: none;
+  -webkit-appearance: none; appearance: none;
+}
+.kranthi-form-input:focus,
+.kranthi-form-textarea:focus,
+.kranthi-form-select:focus {
+  border-color: rgba(0,255,136,0.35);
+  box-shadow: 0 0 0 3px rgba(0,255,136,0.07);
+}
+.kranthi-form-textarea { height: 120px; }
+.kranthi-form-submit {
+  width: 100%; padding: 1rem;
+  background: var(--accent); color: #000;
+  font-size: 0.9rem; font-weight: 700;
+  border-radius: 12px; cursor: none;
+  transition: opacity 0.2s, transform 0.2s;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+}
+.kranthi-form-submit:hover { opacity: 0.88; transform: translateY(-1px); }
+.kranthi-form-success {
+  display: none; text-align: center;
+  padding: 1.5rem; color: var(--accent);
+  font-weight: 600; font-size: 0.95rem;
+}
+
+/* ============================================================
+   FOOTER
+============================================================ */
+.kranthi-footer {
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 6vw;
+  display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap;
+  gap: 1.25rem;
+}
+.kranthi-footer-logo {
+  font-family: var(--font-display);
+  font-size: 1.2rem; font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.kranthi-footer-logo span { color: var(--accent); }
+.kranthi-footer-links { display: flex; gap: 1.5rem; }
+.kranthi-footer-link { font-size: 0.82rem; color: var(--muted); transition: color 0.2s; }
+.kranthi-footer-link:hover { color: var(--text); }
+.kranthi-footer-copy { font-size: 0.78rem; color: var(--dim); }
+.kranthi-footer-socials { display: flex; gap: 1rem; }
+.kranthi-footer-social {
+  width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; color: var(--muted);
+  transition: border-color 0.2s, color 0.2s;
+}
+.kranthi-footer-social:hover { border-color: rgba(0,255,136,0.3); color: var(--accent); }
+.kranthi-back-top {
+  position: fixed; bottom: 2rem; right: 2rem;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--muted);
+  z-index: 999; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s, border-color 0.2s, color 0.2s;
+}
+.kranthi-back-top.show { opacity: 1; pointer-events: auto; }
+.kranthi-back-top:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media (max-width: 1024px) {
+  .kranthi-about-inner { grid-template-columns: 1fr; }
+  .kranthi-contact-inner { grid-template-columns: 1fr; gap: 3rem; }
+  .kranthi-process-steps { grid-template-columns: repeat(3, 1fr); }
+  .kranthi-process-steps::before { display: none; }
+  .kranthi-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .kranthi-hero-avatar { display: none; }
+  .kranthi-testimonial-card { min-width: calc(50% - 0.75rem); }
+}
+@media (max-width: 768px) {
+  .kranthi-nav-links, .kranthi-nav-cta { display: none; }
+  .kranthi-hamburger { display: flex; }
+  .kranthi-mobile-menu { display: flex; }
+  .kranthi-portfolio-grid { grid-template-columns: 1fr; }
+  .kranthi-process-steps { grid-template-columns: 1fr 1fr; }
+  .kranthi-testimonial-card { min-width: 90%; }
+  .kranthi-form-row { grid-template-columns: 1fr; }
+  .kranthi-footer { flex-direction: column; align-items: flex-start; }
+}
+@media (max-width: 480px) {
+  .kranthi-stats-row { grid-template-columns: 1fr 1fr; }
+  .kranthi-hero-headline { font-size: clamp(2.5rem, 10vw, 4rem); }
+  .kranthi-process-steps { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="kranthi-cursor" id="kranthi-cursor"></div>
+<div class="kranthi-cursor-follower" id="kranthi-cursor-follower"></div>
+
+<!-- NOISE -->
+<div class="kranthi-noise"></div>
+
+<!-- PRELOADER -->
+<div class="kranthi-preloader" id="kranthi-preloader">
+  <div class="kranthi-preloader-logo">K<span>.</span></div>
+  <div class="kranthi-preloader-bar-wrap">
+    <div class="kranthi-preloader-bar" id="kranthi-preloader-bar"></div>
+  </div>
+  <div class="kranthi-preloader-pct" id="kranthi-preloader-pct">0%</div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="kranthi-navbar" id="kranthi-navbar">
+  <a href="#home" class="kranthi-nav-logo">K<span>.</span></a>
+  <div class="kranthi-nav-links">
+    <a href="#home" class="kranthi-nav-link active">Home</a>
+    <a href="#about" class="kranthi-nav-link">About</a>
+    <a href="#skills" class="kranthi-nav-link">Skills</a>
+    <a href="#services" class="kranthi-nav-link">Services</a>
+    <a href="#portfolio" class="kranthi-nav-link">Work</a>
+    <a href="#testimonials" class="kranthi-nav-link">Clients</a>
+    <a href="#contact" class="kranthi-nav-link">Contact</a>
+  </div>
+  <a href="#contact" class="kranthi-nav-cta">Let's Talk</a>
+  <button class="kranthi-hamburger" id="kranthi-hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="kranthi-mobile-menu" id="kranthi-mobile-menu">
+  <a href="#home" class="kranthi-mobile-link" data-close>Home</a>
+  <a href="#about" class="kranthi-mobile-link" data-close>About</a>
+  <a href="#skills" class="kranthi-mobile-link" data-close>Skills</a>
+  <a href="#services" class="kranthi-mobile-link" data-close>Services</a>
+  <a href="#portfolio" class="kranthi-mobile-link" data-close>Work</a>
+  <a href="#testimonials" class="kranthi-mobile-link" data-close>Clients</a>
+  <a href="#contact" class="kranthi-mobile-link" data-close>Contact</a>
+</div>
+
+<!-- HERO -->
+<section class="kranthi-hero" id="home">
+  <div class="kranthi-hero-grid-bg"></div>
+  <div class="kranthi-hero-glow"></div>
+
+  <div class="kranthi-hero-tag">Available for Projects</div>
+
+  <h1 class="kranthi-hero-headline">
+    I Build<br>
+    <span class="kranthi-word-rotate">
+      <span class="kranthi-rotate-words" id="kranthi-rotate-words">
+        <span class="kranthi-rotate-word">Brands.</span>
+        <span class="kranthi-rotate-word">Startups.</span>
+        <span class="kranthi-rotate-word">Products.</span>
+        <span class="kranthi-rotate-word">Experiences.</span>
+        <span class="kranthi-rotate-word">Businesses.</span>
+      </span>
+    </span><br>
+    That Matter.
+  </h1>
+
+  <p class="kranthi-hero-sub">
+    Kranthi — Full Stack Developer crafting <strong>high-performance web experiences</strong> that convert visitors into loyal clients. From sleek landing pages to complex AI-powered platforms.
+  </p>
+
+  <div class="kranthi-hero-actions">
+    <a href="#portfolio" class="kranthi-btn-primary">See My Work ↓</a>
+    <a href="#contact" class="kranthi-btn-secondary">Start a Project →</a>
+  </div>
+
+  <div class="kranthi-hero-scroll">
+    <div class="kranthi-scroll-line"></div>
+    Scroll to explore
+  </div>
+
+  <div class="kranthi-hero-avatar">
+    <div class="kranthi-avatar-ring"></div>
+    <div class="kranthi-avatar-img"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(0,255,136,0.5)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>
+    <div class="kranthi-availability-badge">Open to work</div>
+  </div>
+</section>
+
+<!-- DIVIDER -->
+<div class="kranthi-divider"></div>
+
+<!-- ABOUT -->
+<section class="kranthi-about" id="about">
+  <div class="kranthi-container">
+    <div class="kranthi-about-inner">
+      <div class="kranthi-about-text kranthi-reveal">
+        <div class="kranthi-section-label">About Me</div>
+        <h2 class="kranthi-section-title">Code is my<br><em>craft.</em></h2>
+        <p class="kranthi-about-desc">
+          I'm <strong>Kranthi</strong>, a Full Stack Developer who builds web products that look stunning and perform even better. From academic portals to agency websites, I bring ideas to life with clean code and obsessive attention to detail.
+          <br><br>
+          I specialize in bridging design and engineering — creating experiences that feel human while being technically bulletproof.
+        </p>
+
+        <div class="kranthi-timeline" style="margin-top:2.5rem;">
+          <div class="kranthi-timeline-item">
+            <div>
+              <div class="kranthi-timeline-year">2023</div>
+              <div class="kranthi-timeline-dot"></div>
+            </div>
+            <div class="kranthi-timeline-body">
+              <div class="kranthi-timeline-role">Started Freelancing</div>
+              <div class="kranthi-timeline-place">Built first client websites — research platforms & event portals</div>
+            </div>
+          </div>
+          <div class="kranthi-timeline-item">
+            <div>
+              <div class="kranthi-timeline-year">2024</div>
+              <div class="kranthi-timeline-dot"></div>
+            </div>
+            <div class="kranthi-timeline-body">
+              <div class="kranthi-timeline-role">Expanded into Creative & Business Websites</div>
+              <div class="kranthi-timeline-place">Agency sites, industrial branding, photography platforms</div>
+            </div>
+          </div>
+          <div class="kranthi-timeline-item">
+            <div>
+              <div class="kranthi-timeline-year">Now</div>
+              <div class="kranthi-timeline-dot"></div>
+            </div>
+            <div class="kranthi-timeline-body">
+              <div class="kranthi-timeline-role">Full Stack + AI Solutions</div>
+              <div class="kranthi-timeline-place">Building smarter web products with AI integration & dashboards</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kranthi-stats-grid kranthi-reveal kranthi-reveal-delay-2">
+        <div class="kranthi-stat-card">
+          <div class="kranthi-stat-num kranthi-counter" data-target="8">0</div>
+          <div class="kranthi-stat-label">Projects Shipped</div>
+        </div>
+        <div class="kranthi-stat-card">
+          <div class="kranthi-stat-num kranthi-counter" data-target="7">0</div>
+          <div class="kranthi-stat-label">Happy Clients</div>
+        </div>
+        <div class="kranthi-stat-card">
+          <div class="kranthi-stat-num kranthi-counter" data-target="2">0</div>
+          <div class="kranthi-stat-label">Years Experience</div>
+        </div>
+        <div class="kranthi-stat-card">
+          <div class="kranthi-stat-num kranthi-counter" data-target="15">0</div>
+          <div class="kranthi-stat-label">Technologies Used</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="kranthi-skills" id="skills">
+  <div class="kranthi-container">
+    <div class="kranthi-skills-header kranthi-reveal">
+      <div class="kranthi-section-label" style="justify-content:center;">Expertise</div>
+      <h2 class="kranthi-section-title">The Skill <em>Ecosystem</em></h2>
+      <p style="color:var(--muted);margin-top:1rem;font-size:0.9rem;">Hover over any node to explore</p>
+    </div>
+    <div class="kranthi-skills-canvas-wrap kranthi-reveal kranthi-reveal-delay-2">
+      <canvas id="kranthi-skills-canvas"></canvas>
+      <div class="kranthi-skill-tooltip" id="kranthi-skill-tooltip">
+        <div class="kranthi-skill-tooltip-name" id="kranthi-tooltip-name"></div>
+        <div class="kranthi-skill-tooltip-cat" id="kranthi-tooltip-cat"></div>
+        <div class="kranthi-skill-tooltip-info" id="kranthi-tooltip-info"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="kranthi-services" id="services">
+  <div class="kranthi-container">
+    <div class="kranthi-services-header kranthi-reveal">
+      <div class="kranthi-section-label">What I Do</div>
+      <h2 class="kranthi-section-title">Services That <em>Drive Results</em></h2>
+    </div>
+    <div class="kranthi-services-grid">
+
+      <div class="kranthi-service-card kranthi-reveal kranthi-reveal-delay-1">
+        <div class="kranthi-service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+        <div class="kranthi-service-title">Website Development</div>
+        <div class="kranthi-service-desc">Custom-built websites engineered for performance, SEO, and conversion. From corporate platforms to dynamic web apps — built to scale.</div>
+        <div class="kranthi-service-arrow">Learn more →</div>
+      </div>
+
+      <div class="kranthi-service-card kranthi-reveal kranthi-reveal-delay-2">
+        <div class="kranthi-service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
+        <div class="kranthi-service-title">Landing Pages & E-Commerce</div>
+        <div class="kranthi-service-desc">High-converting landing pages and fully functional e-commerce stores crafted to turn browsers into buyers.</div>
+        <div class="kranthi-service-arrow">Learn more →</div>
+      </div>
+
+      <div class="kranthi-service-card kranthi-reveal kranthi-reveal-delay-3">
+        <div class="kranthi-service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 8v4l3 3"/><circle cx="18" cy="6" r="3"/><path d="m21 3-1.5 1.5"/></svg></div>
+        <div class="kranthi-service-title">AI Solutions & Dashboards</div>
+        <div class="kranthi-service-desc">Intelligent web products powered by AI APIs — chatbots, analytics dashboards, and smart automation tools built on modern stacks.</div>
+        <div class="kranthi-service-arrow">Learn more →</div>
+      </div>
+
+      <div class="kranthi-service-card kranthi-reveal kranthi-reveal-delay-4">
+        <div class="kranthi-service-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <div class="kranthi-service-title">Maintenance & Support</div>
+        <div class="kranthi-service-desc">Ongoing technical support, performance optimization, bug fixes, and feature updates to keep your digital presence running smoothly.</div>
+        <div class="kranthi-service-arrow">Learn more →</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section class="kranthi-portfolio" id="portfolio">
+  <div class="kranthi-container">
+    <div class="kranthi-portfolio-header kranthi-reveal">
+      <div class="kranthi-section-label">Featured Work</div>
+      <h2 class="kranthi-section-title">Projects That <em>Speak</em></h2>
+    </div>
+
+    <div class="kranthi-filter-bar kranthi-reveal kranthi-reveal-delay-1">
+      <button class="kranthi-filter-btn active" data-filter="all">All</button>
+      <button class="kranthi-filter-btn" data-filter="academic">Academic</button>
+      <button class="kranthi-filter-btn" data-filter="events">Events</button>
+      <button class="kranthi-filter-btn" data-filter="creative">Creative</button>
+      <button class="kranthi-filter-btn" data-filter="business">Business</button>
+    </div>
+
+    <div class="kranthi-portfolio-grid" id="kranthi-portfolio-grid">
+
+      <!-- BSIP Lab -->
+      <a class="kranthi-project-card" href="https://bsiplab.in/" target="_blank" data-category="academic">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://bsiplab.in/&screenshot=true&meta=false&embed=screenshot.url" alt="BSIP Lab" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>BSIP Lab</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Academic</span>
+          <div class="kranthi-project-name">BSIP Lab</div>
+          <p class="kranthi-project-desc">Research institution platform with streamlined academic resource access, lab info, and institutional updates.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">HTML/CSS</span>
+            <span class="kranthi-tech-tag">JavaScript</span>
+            <span class="kranthi-tech-tag">PHP</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- BSIP Nexus -->
+      <a class="kranthi-project-card" href="https://bsiplab.in/sip/nexus/index.php" target="_blank" data-category="events">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://bsiplab.in/sip/nexus/index.php&screenshot=true&meta=false&embed=screenshot.url" alt="BSIP Nexus" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>BSIP Nexus</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Events</span>
+          <div class="kranthi-project-name">BSIP Nexus</div>
+          <p class="kranthi-project-desc">Event management portal handling participant registrations, schedules, and information distribution.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">PHP</span>
+            <span class="kranthi-tech-tag">MySQL</span>
+            <span class="kranthi-tech-tag">Bootstrap</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- AITAM RISE -->
+      <a class="kranthi-project-card" href="https://kranthi1525.github.io/aitamrise/" target="_blank" data-category="events">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://kranthi1525.github.io/aitamrise/&screenshot=true&meta=false&embed=screenshot.url" alt="AITAM RISE" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>AITAM RISE</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Events</span>
+          <div class="kranthi-project-name">AITAM RISE</div>
+          <p class="kranthi-project-desc">Interactive technical event website for AITAM featuring modern UI, event schedules, and workshops.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">HTML/CSS</span>
+            <span class="kranthi-tech-tag">JavaScript</span>
+            <span class="kranthi-tech-tag">GitHub Pages</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Avishkaar -->
+      <a class="kranthi-project-card" href="https://adityatekkali.edu.in/avishkaars2/" target="_blank" data-category="academic">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://adityatekkali.edu.in/avishkaars2/&screenshot=true&meta=false&embed=screenshot.url" alt="Avishkaar" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>Avishkaar</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Academic</span>
+          <div class="kranthi-project-name">Avishkaar</div>
+          <p class="kranthi-project-desc">Centralized platform for innovation showcases and academic competitions with clean participant engagement UX.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">HTML/CSS</span>
+            <span class="kranthi-tech-tag">PHP</span>
+            <span class="kranthi-tech-tag">MySQL</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Branding Jester -->
+      <a class="kranthi-project-card" href="https://brandingjester.com/" target="_blank" data-category="creative">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://brandingjester.com/&screenshot=true&meta=false&embed=screenshot.url" alt="Branding Jester" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>Branding Jester</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Creative</span>
+          <div class="kranthi-project-name">Branding Jester</div>
+          <p class="kranthi-project-desc">Visually engaging digital presence for a creative branding agency, focused on storytelling and conversion.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">WordPress</span>
+            <span class="kranthi-tech-tag">Custom CSS</span>
+            <span class="kranthi-tech-tag">JS</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- LightNshot -->
+      <a class="kranthi-project-card" href="https://kranthi1525.github.io/LightNshot/" target="_blank" data-category="creative">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=https://kranthi1525.github.io/LightNshot/&screenshot=true&meta=false&embed=screenshot.url" alt="LightNshot" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>LightNshot</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Creative</span>
+          <div class="kranthi-project-name">LightNshot</div>
+          <p class="kranthi-project-desc">Modern photography platform with strong visual hierarchy, interactive components, and clean mobile experience.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">HTML/CSS</span>
+            <span class="kranthi-tech-tag">JavaScript</span>
+            <span class="kranthi-tech-tag">GitHub Pages</span>
+          </div>
+        </div>
+      </a>
+
+      <!-- Squad Steel -->
+      <a class="kranthi-project-card" href="http://squadsteeldetailing.com/" target="_blank" data-category="business">
+        <div class="kranthi-project-thumb">
+          <img src="https://api.microlink.io/?url=http://squadsteeldetailing.com/&screenshot=true&meta=false&embed=screenshot.url" alt="Squad Steel Detailing" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22400%22 height=%22220%22><rect fill=%22%231a1a1a%22 width=%22400%22 height=%22220%22/><text fill=%22%23555%22 font-size=%2220%22 x=%22200%22 y=%22110%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>Squad Steel</text></svg>'">
+          <div class="kranthi-project-overlay">
+            <div class="kranthi-project-view-btn">View Live ↗</div>
+          </div>
+        </div>
+        <div class="kranthi-project-body">
+          <span class="kranthi-project-cat">Business</span>
+          <div class="kranthi-project-name">Squad Steel Detailing</div>
+          <p class="kranthi-project-desc">Professional platform for an industrial steel detailing company — service communication, lead gen, and corporate credibility.</p>
+          <div class="kranthi-project-tech">
+            <span class="kranthi-tech-tag">HTML/CSS</span>
+            <span class="kranthi-tech-tag">JavaScript</span>
+            <span class="kranthi-tech-tag">PHP</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="kranthi-process" id="process">
+  <div class="kranthi-container">
+    <div class="kranthi-process-header kranthi-reveal">
+      <div class="kranthi-section-label" style="justify-content:center;">How I Work</div>
+      <h2 class="kranthi-section-title">The <em>Process</em></h2>
+    </div>
+    <div class="kranthi-process-steps">
+      <div class="kranthi-process-step kranthi-reveal kranthi-reveal-delay-1">
+        <div class="kranthi-process-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg></div>
+        <div class="kranthi-process-name">Discovery</div>
+        <div class="kranthi-process-desc">Deep-dive into your goals, audience, and competitors to define the strategy.</div>
+      </div>
+      <div class="kranthi-process-step kranthi-reveal kranthi-reveal-delay-2">
+        <div class="kranthi-process-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 13.5V20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6.5"/><path d="M2 10.5V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v6.5"/><path d="M12 2v20"/><path d="M2 12h20"/></svg></div>
+        <div class="kranthi-process-name">Design</div>
+        <div class="kranthi-process-desc">Wireframes and visual systems crafted with intent — no generic templates.</div>
+      </div>
+      <div class="kranthi-process-step kranthi-reveal kranthi-reveal-delay-3">
+        <div class="kranthi-process-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+        <div class="kranthi-process-name">Development</div>
+        <div class="kranthi-process-desc">Clean, performant code written from scratch. Optimized for speed and scale.</div>
+      </div>
+      <div class="kranthi-process-step kranthi-reveal kranthi-reveal-delay-4">
+        <div class="kranthi-process-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="kranthi-process-name">Testing</div>
+        <div class="kranthi-process-desc">Cross-browser, cross-device quality assurance before a single pixel goes live.</div>
+      </div>
+      <div class="kranthi-process-step kranthi-reveal" style="transition-delay:0.5s">
+        <div class="kranthi-process-icon"><svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></div>
+        <div class="kranthi-process-name">Deployment</div>
+        <div class="kranthi-process-desc">Smooth launch with monitoring, documentation, and post-launch support.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="kranthi-testimonials" id="testimonials">
+  <div class="kranthi-container">
+    <div class="kranthi-testimonials-header kranthi-reveal">
+      <div class="kranthi-section-label" style="justify-content:center;">Client Love</div>
+      <h2 class="kranthi-section-title">What They <em>Say</em></h2>
+    </div>
+    <div class="kranthi-testimonials-track-wrap kranthi-reveal kranthi-reveal-delay-1" id="kranthi-testimonials-wrap">
+      <div class="kranthi-testimonials-track" id="kranthi-testimonials-track">
+
+        <div class="kranthi-testimonial-card">
+          <div class="kranthi-testimonial-stars">★★★★★</div>
+          <div class="kranthi-testimonial-quote">"</div>
+          <p class="kranthi-testimonial-text">Kranthi delivered an absolutely outstanding website for our research lab. The attention to detail in the UI and the performance of the site exceeded all our expectations. Highly recommended.</p>
+          <div class="kranthi-testimonial-author">
+            <div class="kranthi-testimonial-avatar">👨‍🔬</div>
+            <div>
+              <div class="kranthi-testimonial-name">Dr. Ravi Kumar</div>
+              <div class="kranthi-testimonial-role">Director, BSIP Lab</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kranthi-testimonial-card">
+          <div class="kranthi-testimonial-stars">★★★★★</div>
+          <div class="kranthi-testimonial-quote">"</div>
+          <p class="kranthi-testimonial-text">The event registration portal Kranthi built for us was flawless. Participants loved the smooth experience and we saw zero drop-offs. Will work with him again without hesitation.</p>
+          <div class="kranthi-testimonial-author">
+            <div class="kranthi-testimonial-avatar">👩‍💼</div>
+            <div>
+              <div class="kranthi-testimonial-name">Priya Sharma</div>
+              <div class="kranthi-testimonial-role">Event Coordinator, BSIP Nexus</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kranthi-testimonial-card">
+          <div class="kranthi-testimonial-stars">★★★★★</div>
+          <div class="kranthi-testimonial-quote">"</div>
+          <p class="kranthi-testimonial-text">Our branding agency website transformed how clients perceive us. Kranthi nailed the aesthetic we were going for and the interaction design is incredibly polished. Real talent.</p>
+          <div class="kranthi-testimonial-author">
+            <div class="kranthi-testimonial-avatar">🎨</div>
+            <div>
+              <div class="kranthi-testimonial-name">Arjun Mehta</div>
+              <div class="kranthi-testimonial-role">Founder, Branding Jester</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kranthi-testimonial-card">
+          <div class="kranthi-testimonial-stars">★★★★★</div>
+          <div class="kranthi-testimonial-quote">"</div>
+          <p class="kranthi-testimonial-text">Working with Kranthi was a great experience from start to finish. He understood our industrial brand perfectly and built a site that generates real leads for our business.</p>
+          <div class="kranthi-testimonial-author">
+            <div class="kranthi-testimonial-avatar">🏗️</div>
+            <div>
+              <div class="kranthi-testimonial-name">Suresh Reddy</div>
+              <div class="kranthi-testimonial-role">MD, Squad Steel Detailing</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="kranthi-testimonials-nav">
+      <button class="kranthi-testimonials-btn" id="kranthi-test-prev">←</button>
+      <div class="kranthi-testimonials-dot active" data-idx="0"></div>
+      <div class="kranthi-testimonials-dot" data-idx="1"></div>
+      <div class="kranthi-testimonials-dot" data-idx="2"></div>
+      <div class="kranthi-testimonials-dot" data-idx="3"></div>
+      <button class="kranthi-testimonials-btn" id="kranthi-test-next">→</button>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="kranthi-stats" id="stats">
+  <div class="kranthi-container">
+    <div class="kranthi-stats-row">
+      <div class="kranthi-stats-item kranthi-reveal">
+        <div class="kranthi-stats-num kranthi-counter" data-target="8">0</div>
+        <div class="kranthi-stats-label">Projects Completed</div>
+      </div>
+      <div class="kranthi-stats-item kranthi-reveal kranthi-reveal-delay-1">
+        <div class="kranthi-stats-num kranthi-counter" data-target="7">0</div>
+        <div class="kranthi-stats-label">Clients Served</div>
+      </div>
+      <div class="kranthi-stats-item kranthi-reveal kranthi-reveal-delay-2">
+        <div class="kranthi-stats-num kranthi-counter" data-target="2">0</div>
+        <div class="kranthi-stats-label">Years Experience</div>
+      </div>
+      <div class="kranthi-stats-item kranthi-reveal kranthi-reveal-delay-3">
+        <div class="kranthi-stats-num kranthi-counter" data-target="15">0</div>
+        <div class="kranthi-stats-label">Technologies Mastered</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="kranthi-contact" id="contact">
+  <div class="kranthi-container">
+    <div class="kranthi-contact-inner">
+
+      <div class="kranthi-reveal">
+        <div class="kranthi-section-label">Get In Touch</div>
+        <h2 class="kranthi-section-title">Let's Build<br><em>Something</em></h2>
+        <p class="kranthi-contact-info-label">Have a project in mind or want to discuss an idea? I'm available for freelance work and always excited to collaborate on meaningful projects.</p>
+
+        <div class="kranthi-contact-channels">
+          <a href="mailto:kranthi@example.com" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">✉️</span>
+            kranthi@example.com
+          </a>
+          <a href="tel:+919999999999" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">📞</span>
+            +91 99999 99999
+          </a>
+          <a href="https://wa.me/919999999999" target="_blank" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">💬</span>
+            WhatsApp
+          </a>
+          <a href="https://linkedin.com/in/kranthi" target="_blank" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">💼</span>
+            linkedin.com/in/kranthi
+          </a>
+          <a href="https://github.com/kranthi1525" target="_blank" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">🐙</span>
+            github.com/kranthi1525
+          </a>
+          <a href="https://instagram.com/kranthi" target="_blank" class="kranthi-contact-channel">
+            <span class="kranthi-contact-channel-icon">📸</span>
+            @kranthi
+          </a>
+        </div>
+      </div>
+
+      <div class="kranthi-contact-form-wrap kranthi-reveal kranthi-reveal-delay-2">
+        <div class="kranthi-form-title">Send a Message</div>
+        <div class="kranthi-form-sub">I respond within 24 hours.</div>
+        <form id="kranthi-contact-form" novalidate>
+          <div class="kranthi-form-row">
+            <div class="kranthi-form-group">
+              <label class="kranthi-form-label">Name *</label>
+              <input type="text" class="kranthi-form-input" id="kranthi-f-name" placeholder="Your name" required>
+            </div>
+            <div class="kranthi-form-group">
+              <label class="kranthi-form-label">Email *</label>
+              <input type="email" class="kranthi-form-input" id="kranthi-f-email" placeholder="your@email.com" required>
+            </div>
+          </div>
+          <div class="kranthi-form-group">
+            <label class="kranthi-form-label">Service</label>
+            <select class="kranthi-form-select" id="kranthi-f-service">
+              <option value="">Select a service…</option>
+              <option>Website Development</option>
+              <option>Landing Page / E-Commerce</option>
+              <option>AI Solutions & Dashboard</option>
+              <option>Maintenance & Support</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="kranthi-form-group">
+            <label class="kranthi-form-label">Message *</label>
+            <textarea class="kranthi-form-textarea" id="kranthi-f-msg" placeholder="Tell me about your project…" required></textarea>
+          </div>
+          <button type="submit" class="kranthi-form-submit">Send Message ✦</button>
+          <div class="kranthi-form-success" id="kranthi-form-success">
+            ✅ Message sent! I'll be in touch within 24 hours.
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="kranthi-footer">
+  <div class="kranthi-footer-logo">Kranthi<span>.</span></div>
+  <div class="kranthi-footer-links">
+    <a href="#home" class="kranthi-footer-link">Home</a>
+    <a href="#about" class="kranthi-footer-link">About</a>
+    <a href="#portfolio" class="kranthi-footer-link">Work</a>
+    <a href="#contact" class="kranthi-footer-link">Contact</a>
+  </div>
+  <div class="kranthi-footer-socials">
+    <a href="https://github.com/kranthi1525" target="_blank" class="kranthi-footer-social" title="GitHub">⌨</a>
+    <a href="https://linkedin.com/in/kranthi" target="_blank" class="kranthi-footer-social" title="LinkedIn">in</a>
+    <a href="https://instagram.com/kranthi" target="_blank" class="kranthi-footer-social" title="Instagram">ig</a>
+  </div>
+  <div class="kranthi-footer-copy">© 2025 Kranthi. All rights reserved.</div>
+</footer>
+
+<button class="kranthi-back-top" id="kranthi-back-top" aria-label="Back to top">↑</button>
+
+<script>
+/* ============================================================
+   CURSOR
+============================================================ */
+const cursor = document.getElementById('kranthi-cursor');
+const follower = document.getElementById('kranthi-cursor-follower');
+let mx = 0, my = 0, fx = 0, fy = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  fx += (mx - fx) * 0.1; fy += (my - fy) * 0.1;
+  follower.style.left = fx + 'px'; follower.style.top = fy + 'px';
+  requestAnimationFrame(animCursor);
+})();
+document.querySelectorAll('a, button, .kranthi-project-card, .kranthi-service-card').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+});
+
+/* ============================================================
+   PRELOADER
+============================================================ */
+const bar = document.getElementById('kranthi-preloader-bar');
+const pct = document.getElementById('kranthi-preloader-pct');
+let p = 0;
+const intv = setInterval(() => {
+  p += Math.random() * 12;
+  if (p >= 100) { p = 100; clearInterval(intv); }
+  bar.style.width = p + '%';
+  pct.textContent = Math.floor(p) + '%';
+  if (p === 100) setTimeout(() => document.getElementById('kranthi-preloader').classList.add('hidden'), 400);
+}, 80);
+
+/* ============================================================
+   NAVBAR
+============================================================ */
+const navbar = document.getElementById('kranthi-navbar');
+const navLinks = document.querySelectorAll('.kranthi-nav-link');
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 60);
+  document.getElementById('kranthi-back-top').classList.toggle('show', window.scrollY > 400);
+  // Active nav
+  let current = '';
+  sections.forEach(s => { if (window.scrollY >= s.offsetTop - 120) current = s.id; });
+  navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+});
+
+/* ============================================================
+   MOBILE MENU
+============================================================ */
+const ham = document.getElementById('kranthi-hamburger');
+const mob = document.getElementById('kranthi-mobile-menu');
+ham.addEventListener('click', () => {
+  ham.classList.toggle('open'); mob.classList.toggle('open');
+  mob.style.display = mob.classList.contains('open') ? 'flex' : 'none';
+});
+document.querySelectorAll('[data-close]').forEach(l => l.addEventListener('click', () => {
+  ham.classList.remove('open'); mob.classList.remove('open'); mob.style.display = 'none';
+}));
+
+/* ============================================================
+   REVEAL ANIMATIONS
+============================================================ */
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.kranthi-reveal').forEach(el => revealObs.observe(el));
+
+/* ============================================================
+   WORD ROTATOR
+============================================================ */
+const words = document.querySelectorAll('.kranthi-rotate-word');
+let wIdx = 0;
+words[0].classList.add('active');
+setInterval(() => {
+  words[wIdx].classList.remove('active'); words[wIdx].classList.add('leaving');
+  const prev = wIdx;
+  wIdx = (wIdx + 1) % words.length;
+  words[wIdx].classList.add('active');
+  setTimeout(() => words[prev].classList.remove('leaving'), 700);
+}, 2200);
+
+/* ============================================================
+   COUNTER ANIMATION
+============================================================ */
+const counters = document.querySelectorAll('.kranthi-counter');
+const counterObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (!e.isIntersecting) return;
+    const el = e.target, target = +el.dataset.target;
+    let start = 0; const dur = 1600;
+    const step = timestamp => {
+      if (!start) start = timestamp;
+      const prog = Math.min((timestamp - start) / dur, 1);
+      el.textContent = Math.floor(prog * target);
+      if (prog < 1) requestAnimationFrame(step);
+      else el.textContent = target + (target >= 10 ? '+' : '');
+    };
+    requestAnimationFrame(step);
+    counterObs.unobserve(el);
+  });
+}, { threshold: 0.5 });
+counters.forEach(c => counterObs.observe(c));
+
+/* ============================================================
+   SKILLS CANVAS
+============================================================ */
+(function initSkills() {
+  const canvas = document.getElementById('kranthi-skills-canvas');
+  const wrap = canvas.parentElement;
+  const tooltip = document.getElementById('kranthi-skill-tooltip');
+  const ttName = document.getElementById('kranthi-tooltip-name');
+  const ttCat = document.getElementById('kranthi-tooltip-cat');
+  const ttInfo = document.getElementById('kranthi-tooltip-info');
+
+  const skills = [
+    { name:'HTML5', cat:'Frontend', color:'#e34c26', exp:'2 yrs', info:'Semantic markup, accessibility', r:32 },
+    { name:'CSS3', cat:'Frontend', color:'#1572b6', exp:'2 yrs', info:'Animations, Grid, Flexbox', r:30 },
+    { name:'JavaScript', cat:'Frontend', color:'#f7df1e', exp:'2 yrs', info:'ES6+, DOM, async patterns', r:34 },
+    { name:'React', cat:'Frontend', color:'#61dafb', exp:'1 yr', info:'Hooks, context, SPA', r:28 },
+    { name:'PHP', cat:'Backend', color:'#777bb3', exp:'1.5 yrs', info:'Server-side scripting, APIs', r:28 },
+    { name:'Node.js', cat:'Backend', color:'#3c873a', exp:'1 yr', info:'REST APIs, Express', r:26 },
+    { name:'Python', cat:'Backend', color:'#3572A5', exp:'1 yr', info:'Automation, AI scripts', r:26 },
+    { name:'MySQL', cat:'Database', color:'#4479a1', exp:'1.5 yrs', info:'Relational DB, queries', r:26 },
+    { name:'MongoDB', cat:'Database', color:'#4db33d', exp:'1 yr', info:'NoSQL, aggregation', r:24 },
+    { name:'OpenAI', cat:'AI/ML', color:'#00ff88', exp:'1 yr', info:'API integration, prompting', r:26 },
+    { name:'Git', cat:'Tools', color:'#f05032', exp:'2 yrs', info:'Version control, GitHub', r:24 },
+    { name:'Figma', cat:'Tools', color:'#a259ff', exp:'1 yr', info:'Design handoff, prototypes', r:22 },
+    { name:'WordPress', cat:'Tools', color:'#21759b', exp:'1.5 yrs', info:'CMS, custom themes', r:24 },
+  ];
+
+  function resize() {
+    canvas.width = wrap.clientWidth;
+    canvas.height = wrap.clientHeight;
+  }
+  resize();
+  window.addEventListener('resize', () => { resize(); layout(); });
+
+  const nodes = [];
+  function layout() {
+    nodes.length = 0;
+    const W = canvas.width, H = canvas.height;
+    const cx = W / 2, cy = H / 2;
+    skills.forEach((s, i) => {
+      const angle = (i / skills.length) * Math.PI * 2 - Math.PI / 2;
+      const radius = Math.min(W, H) * 0.35;
+      nodes.push({
+        ...s,
+        x: cx + Math.cos(angle) * radius,
+        y: cy + Math.sin(angle) * radius,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        ox: cx + Math.cos(angle) * radius,
+        oy: cy + Math.sin(angle) * radius,
+        hover: false
+      });
+    });
+  }
+  layout();
+
+  let hovered = null;
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    hovered = null;
+    nodes.forEach(n => {
+      const d = Math.hypot(px - n.x, py - n.y);
+      n.hover = d < n.r + 6;
+      if (n.hover) hovered = n;
+    });
+    if (hovered) {
+      ttName.textContent = hovered.name;
+      ttCat.textContent = hovered.cat;
+      ttInfo.textContent = `${hovered.exp} · ${hovered.info}`;
+      tooltip.classList.add('show');
+      let tx = e.clientX - wrap.getBoundingClientRect().left + 14;
+      let ty = e.clientY - wrap.getBoundingClientRect().top - 20;
+      if (tx + 200 > wrap.clientWidth) tx -= 210;
+      tooltip.style.left = tx + 'px'; tooltip.style.top = ty + 'px';
+    } else {
+      tooltip.classList.remove('show');
+    }
+  });
+  canvas.addEventListener('mouseleave', () => { tooltip.classList.remove('show'); hovered = null; });
+
+  const ctx = canvas.getContext('2d');
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const cx = canvas.width / 2, cy = canvas.height / 2;
+
+    // Center hub
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0,255,136,0.15)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,255,136,0.5)'; ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 10px JetBrains Mono, monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('K', cx, cy);
+    ctx.restore();
+
+    nodes.forEach(n => {
+      // Drift
+      n.x += n.vx; n.y += n.vy;
+      const dx = n.ox - n.x, dy = n.oy - n.y;
+      n.vx += dx * 0.008; n.vy += dy * 0.008;
+      n.vx *= 0.94; n.vy *= 0.94;
+
+      // Line to center
+      ctx.save();
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(n.x, n.y);
+      ctx.strokeStyle = n.hover ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.04)';
+      ctx.lineWidth = n.hover ? 1.5 : 1; ctx.stroke(); ctx.restore();
+
+      // Node
+      ctx.save();
+      ctx.beginPath(); ctx.arc(n.x, n.y, n.r + (n.hover ? 4 : 0), 0, Math.PI * 2);
+      if (n.hover) {
+        ctx.shadowColor = n.color; ctx.shadowBlur = 20;
+      }
+      ctx.fillStyle = n.hover ? n.color + '22' : '#111';
+      ctx.fill();
+      ctx.strokeStyle = n.hover ? n.color : 'rgba(255,255,255,0.12)';
+      ctx.lineWidth = n.hover ? 2 : 1; ctx.stroke();
+      ctx.restore();
+
+      // Label
+      ctx.save();
+      ctx.fillStyle = n.hover ? '#fff' : '#bdbdbd';
+      ctx.font = `${n.hover ? '600' : '400'} ${Math.max(10, n.r * 0.42)}px Space Grotesk, sans-serif`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(n.name, n.x, n.y);
+      ctx.restore();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ============================================================
+   SERVICE CARD 3D TILT
+============================================================ */
+document.querySelectorAll('.kranthi-service-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+  });
+});
+
+/* ============================================================
+   PORTFOLIO FILTER
+============================================================ */
+document.querySelectorAll('.kranthi-filter-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.kranthi-filter-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    const filter = this.dataset.filter;
+    document.querySelectorAll('.kranthi-project-card').forEach(card => {
+      const match = filter === 'all' || card.dataset.category === filter;
+      card.classList.toggle('filtered-out', !match);
+    });
+  });
+});
+
+/* ============================================================
+   TESTIMONIALS CAROUSEL
+============================================================ */
+(function initTestimonials() {
+  const track = document.getElementById('kranthi-testimonials-track');
+  const wrap = document.getElementById('kranthi-testimonials-wrap');
+  const dots = document.querySelectorAll('.kranthi-testimonials-dot');
+  const cards = document.querySelectorAll('.kranthi-testimonial-card');
+  let idx = 0, paused = false, perView = 3;
+
+  function getPerView() {
+    if (window.innerWidth <= 768) return 1;
+    if (window.innerWidth <= 1024) return 2;
+    return 3;
+  }
+
+  function go(i) {
+    perView = getPerView();
+    const max = Math.max(0, cards.length - perView);
+    idx = Math.max(0, Math.min(i, max));
+    const cardW = cards[0].offsetWidth + 24;
+    track.style.transform = `translateX(-${idx * cardW}px)`;
+    dots.forEach((d, j) => d.classList.toggle('active', j === idx));
+  }
+
+  document.getElementById('kranthi-test-prev').addEventListener('click', () => go(idx - 1));
+  document.getElementById('kranthi-test-next').addEventListener('click', () => go(idx + 1));
+  dots.forEach(d => d.addEventListener('click', () => go(+d.dataset.idx)));
+  wrap.addEventListener('mouseenter', () => paused = true);
+  wrap.addEventListener('mouseleave', () => paused = false);
+  setInterval(() => { if (!paused) { perView = getPerView(); go(idx + 1 > cards.length - perView ? 0 : idx + 1); } }, 4000);
+  window.addEventListener('resize', () => go(idx));
+})();
+
+/* ============================================================
+   CONTACT FORM
+============================================================ */
+document.getElementById('kranthi-contact-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const name = document.getElementById('kranthi-f-name').value.trim();
+  const email = document.getElementById('kranthi-f-email').value.trim();
+  const msg = document.getElementById('kranthi-f-msg').value.trim();
+  if (!name || !email || !msg) return;
+  const btn = this.querySelector('.kranthi-form-submit');
+  btn.textContent = 'Sending…'; btn.style.opacity = '0.7';
+  setTimeout(() => {
+    btn.style.display = 'none';
+    document.getElementById('kranthi-form-success').style.display = 'block';
+  }, 1200);
+});
+
+/* ============================================================
+   BACK TO TOP
+============================================================ */
+document.getElementById('kranthi-back-top').addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+</script>
+</body>
+</html>
